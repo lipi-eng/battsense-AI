@@ -1,0 +1,21 @@
+Battery Temperature Prediction — Model Evaluation
+==================================================
+
+Dataset : 185,721 rows, 636 discharge cycles
+Features: voltage_v, current_a, elapsed_time_s
+Target  : battery_temp_c
+
+Linear Regression
+  MAE  : 0.9104 °C
+  RMSE : 1.2079 °C
+  R2   : 0.9075
+
+XGBoost
+  MAE  : 0.5045 °C
+  RMSE : 0.6795 °C
+  R2   : 0.9707
+
+Verdict
+-------
+XGBoost achieves lower MAE.
+MAE difference: 0.4058 °C (44.6 % reduction).

@@ -1,0 +1,60 @@
+============================================================
+ENGINEERING SUMMARY
+============================================================
+
+1. WHY BATTERY TEMPERATURE PREDICTION MATTERS
+   Lithium-ion cells degrade faster and risk thermal runaway when
+   operated above safe temperatures (~60 °C for 18650 cells).
+   Estimating cell temperature from electrical measurements lets
+   a battery management system detect abnormal heating without
+   adding a physical sensor to every cell in a pack.
+
+2. WHAT THE INPUT FEATURES REPRESENT
+   Voltage (V)       — terminal voltage falls as the cell discharges
+                       and as internal resistance rises with age;
+                       sharp drops signal high heat generation.
+   Current (A)       — Ohmic heating is proportional to I²R; a larger
+                       discharge current produces more heat per second.
+   Elapsed Time (s)  — captures position within the discharge cycle;
+                       temperature accumulates continuously so a
+                       measurement taken late in a cycle will be warmer
+                       than one taken at the start, even at the same
+                       voltage and current.
+
+   ambient_temp_c was excluded: it equals exactly 24.0 °C for every
+   row (NASA laboratory condition), so it carries zero predictive
+   information.
+
+3. HOW XGBOOST LEARNS
+   XGBoost builds decision trees sequentially. Each tree fits the
+   residual error left by all previous trees (gradient boosting).
+   Unlike Linear Regression, it captures non-linear interactions —
+   for example, the fact that temperature rises more sharply at high
+   current late in a discharge cycle — without explicit feature
+   engineering.
+
+4. MODEL PERFORMANCE (held-out test cycles — 128 cycles, 38,143 rows)
+   Linear Regression — MAE: 0.9104 °C  RMSE: 1.2079 °C  R²: 0.9075
+   XGBoost           — MAE: 0.5045 °C  RMSE: 0.6795 °C  R²: 0.9707
+
+   XGBoost achieves lower MAE on the test cycles
+   (difference: 0.4058 °C, 44.6 %).
+
+5. MOST INFLUENTIAL FEATURES
+   Ranking by XGBoost gain: Elapsed Time (s) > Voltage (V) > Current (A)
+   Most important: Elapsed Time (s)
+
+6. LIMITATIONS
+   a) Constant ambient temperature: the NASA lab held the chamber at
+      24 °C throughout; this model cannot generalise to environments
+      with varying ambient conditions.
+   b) Single-cell laboratory data: measurements come from individual
+      18650 cells under controlled discharge. A real EV pack behaves
+      differently — cells interact thermally, cooling systems actively
+      remove heat, and gradients form across modules.
+   c) Operating range: predictions outside the training voltage and
+      current ranges are unreliable.
+   d) This model estimates temperature at the current operating state.
+      It does not predict future overheating, control any cooling
+      system, or guarantee battery safety.
+============================================================
